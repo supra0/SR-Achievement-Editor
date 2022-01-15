@@ -14,28 +14,19 @@ function isFileValid(content) {
 
 // Determine which achievements are unlocked
 function parseFile(content) {
-    let baseIndex = content.indexOf("SRPA") + 14;
-    
-    let numUnlocked = content.charCodeAt(baseIndex-4);
-    //console.log(numUnlocked);
-    
-    unlocked = [];
+    unlocked = getAchievements(content);
 
-    // Traverse unlocked achievements
-    for(let i = baseIndex; i < baseIndex+numUnlocked*4; i+=4) {
-        unlocked.push(content.charCodeAt(i));
-    }
-    
-    //console.log(unlocked);
+    console.log(unlocked);
 }
 
 function displayAchievements() {
-    for(let achievementId in unlocked) {
-        let achievement = achievementData[achievementId];
-        const output = `<h4>${achievement.name}</h4><p>${achievement.description}</p>`
+    unlocked.forEach(id => {
+        console.log(id);
+        let achievement = achievementData[id];
+        const output = `<h4>${achievement.name}</h4><p>${achievement.description}</p>`;
 
         document.querySelector("body").insertAdjacentHTML("beforeend", output);
-    }
+    });
 }
 
 function handleUpload() {
