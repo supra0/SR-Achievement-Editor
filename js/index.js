@@ -14,14 +14,14 @@ function isFileValid(content) {
 
 // Determine which achievements are unlocked
 function parseFile(content) {
-    unlocked = getAchievements(content);
+    unlocked = readAchievements(content);
+    progress = readAchievementProgress(content);
 
-    console.log(unlocked);
+    console.log(progress);
 }
 
-function displayAchievements() {
+function showAchievements() {
     unlocked.forEach(id => {
-        console.log(id);
         let achievement = achievementData[id];
         const output = `<h4>${achievement.name}</h4><p>${achievement.description}</p>`;
 
@@ -35,11 +35,11 @@ function handleUpload() {
     reader.addEventListener("load", (e) => {
         let result = reader.result;
         
-        if(isFileValid(result)) {
+        if(isFileValid(result) === true) {
             document.getElementById("upload-status").style.visibility = "hidden";
 
             parseFile(result);
-            displayAchievements();
+            showAchievements();
         }
         else {
             let statusElement = document.getElementById("upload-status");

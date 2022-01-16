@@ -42,17 +42,16 @@ function writeInt32(str, n) {
 }
 
 // Returns a list of the unlocked achievement IDs in the save file
-function getAchievements(str) {
+function readAchievements(str) {
     let achievements = [];
 
     let baseIndex = str.indexOf("SRPA");
     if(baseIndex == -1) {
-        return null;
+        return -1;
     }
 
     baseIndex += 10;
     let count = readInt32(str, baseIndex);
-    console.log(count);
 
     for(let i = 0; i < count; i++) {
         let index = baseIndex + (i+1)*4;
@@ -60,4 +59,56 @@ function getAchievements(str) {
     }
     
     return achievements;
+}
+
+// Returns all saved achievement progress data in the save file
+function readAchievementProgress(str) {
+    let progress = new Object();
+    progress.count = {};
+    progress.event = {};
+    progress.list = {};
+
+    let currIndex = str.indexOf("SRPAP");
+    if(currIndex == -1) {
+        return -1;
+    }
+
+    currIndex += 11;
+
+    // Get achievement progresses of type "count"
+    let count = readInt32(str, currIndex);
+    currIndex -= 4; // janky solution to make the rest of this work better - backtrack 4 so we can cleanly add 10 each loop iteration
+    for(let i = 0; i < count; i++) { 
+        currIndex += 10;
+        let key = readInt32(str, currIndex);
+        let value = readInt32(str, currIndex+4);
+        progress.count[key] = value;
+    }
+
+    // Skip "event" progress section - seems to be unused
+    // 8 = last "count" entry, 2 = section divider, 4 = count of event entries, 2 = section divider 
+    currIndex += 8 + 2 + 4 + 2;
+
+    // Get achievement progresses of type "list"
+    count = readInt32(str, currIndex);
+    console.log("count: " + count);
+    for(let i = 0; i < count; i++) {
+        currIndex += 6; // +2 to pass 2 byte element divider
+        let currListKey = readInt32(str, currIndex);
+        let currListItems = [];
+
+        currIndex += 4;
+        let countInList = readInt32(str, currIndex);
+        console.log("countInList: " + countInList);
+
+        // Each list has its own count that needs to be iterated
+        for(let j = 0; j < countInList; j++) {
+            currIndex += 4;
+            currListItems.push(readInt32(str, currIndex));
+        }
+
+        progress.list[currListKey] = currListItems;
+    }
+
+    return progress;
 }
