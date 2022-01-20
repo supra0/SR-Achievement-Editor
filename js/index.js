@@ -1,12 +1,13 @@
 let reader = new FileReader();
 let unlocked;
+let progress;
 
-/* == Initialization == */
+// == Initialization ==
 function initUpload() {
     document.getElementById("file-upload").addEventListener("change", handleUpload);
 }
 
-/* == File Handling == */
+// == File Handling ==
 function isFileValid(content) {
     // not sure how to verify this atm
     return true;
@@ -16,16 +17,27 @@ function isFileValid(content) {
 function parseFile(content) {
     unlocked = readAchievements(content);
     progress = readAchievementProgress(content);
+}
 
-    console.log(progress);
+function showAchievement(achievement, progress=null) {
+    const output = `<h3>${achievement.name}</h3><p>${achievement.description}</p>`;
+
+    document.getElementById("achievements-container").insertAdjacentHTML("beforeend", output);
 }
 
 function showAchievements() {
-    unlocked.forEach(id => {
-        let achievement = achievementData[id];
-        const output = `<h4>${achievement.name}</h4><p>${achievement.description}</p>`;
+    // get achievement data for each unlocked achievement id
+    let dataUnlocked = [];
+    unlocked.forEach(ach => {
+        dataUnlocked.push(achievementData[ach]);
+    });
 
-        document.querySelector("body").insertAdjacentHTML("beforeend", output);
+    // have a "sorted" parameter for this function that determines if it should be sorted (yes by default)
+    // should the user decide they want it in the order stored in the uploaded file, re-run this function without sorting
+    dataUnlocked.sort((a,b) => { return a.order - b.order });
+
+    dataUnlocked.forEach(ach => {
+        showAchievement(ach);
     });
 }
 
@@ -36,23 +48,15 @@ function handleUpload() {
         let result = reader.result;
         
         if(isFileValid(result) === true) {
-            document.getElementById("upload-status").style.visibility = "hidden";
-
             parseFile(result);
             showAchievements();
         }
         else {
-            let statusElement = document.getElementById("upload-status");
-            statusElement.innerHTML = "File is not valid";
-            statusElement.style.visibility = "visible";
+            // add some kind of error notification here
         }
     });
 
     reader.readAsBinaryString(file);
-}
-
-function writeToFile(content) {
-    // write content to file and download
 }
 
 
